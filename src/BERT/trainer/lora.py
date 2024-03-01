@@ -40,6 +40,8 @@ def label_x_id(y_train, y_test):
     for i, label in enumerate(labels):
         id2label[i] = label
         label2id[label] = i
+    with open('models/id2label.txt', 'w') as f:
+        f.write(str(id2label) + '\n' + str(label2id) + '\n')
 
     return id2label, label2id, labels
 
@@ -102,24 +104,6 @@ def train(tokenized_dataset, data_collator, model, tokenizer, compute_metrics):
     torch.save(trainer.model, './models/distilbert-lora.pt')
 
 
-def test(model, tokenizer, x_test, y_test, id2label):
-    correct = 0
-    for text in x_test:
-        inputs = tokenizer.encode(text, return_tensors="pt").to(device)
-        logits = model(inputs).logits
-        predictions = torch.max(logits, 1).indices
-        prediction = id2label[predictions.tolist()[0]]
-        actual = id2label[y_test[x_test.index(text)]]
-        if prediction == actual:
-            correct += 1
-            print(f"Predicted Correctly: {prediction}, for: {text}")
-        else:
-            print(f"Predicted Wrongly: {
-                  prediction} - Actual: {actual}, for: {text}")
-    accuracy = correct / len(x_test)
-    print(f'Accuracy: {accuracy}')
-
-
 def main():
     if tokenizer.pad_token is None:
         tokenizer.add_special_tokens({'pad_token': '[PAD]'})
@@ -141,7 +125,6 @@ def main():
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
     train(tokenized_dataset, data_collator, model, tokenizer, compute_metrics)
-    test(model, tokenizer, x_test, y_test, id2label)
 
     tokenizer.save_pretrained('./models/distilbert-lora-tokenizer')
 

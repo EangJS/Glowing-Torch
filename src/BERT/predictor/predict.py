@@ -2,20 +2,21 @@ from transformers import (
     AutoTokenizer)
 import torch
 import pandas as pd
+import evaluator
 
-TEST_DATA = 'Datasets/test_sample.csv'
+TEST_DATA = 'Datasets/dataset.csv'
+MODEL_NAME = './models/distilbert-lora.pt'
+TOKENIZER_NAME = './models/distilbert-lora-tokenizer'
 
 df = pd.read_csv(TEST_DATA, encoding='latin1')
 text_list = []
 for index, row in df.iterrows():
     text_list.append((row['category'], row['name']))
 
-MODEL_NAME = 'models/bert-lora.pt'
-TOKENIZER_NAME = 'models/bert-lora-tokenizer'
-id2label = {0: 'accessories', 1: 'beauty', 2: 'socks', 3: 'bottoms', 4: 'tops',
-            5: 'outerwear', 6: 'shoes', 7: 'sportswear', 8: 'underwear', 9: 'swimwear'}
-label2id = {'accessories': 0, 'beauty': 1, 'socks': 2, 'bottoms': 3, 'tops': 4,
-            'outerwear': 5, 'shoes': 6, 'sportswear': 7, 'underwear': 8, 'swimwear': 9}
+id2label = {0: 'accessories', 1: 'sportswear', 2: 'bottoms', 3: 'tops',
+            4: 'socks', 5: 'outerwear', 6: 'underwear', 7: 'shoes', 8: 'swimwear'}
+label2id = {'accessories': 0, 'sportswear': 1, 'bottoms': 2, 'tops': 3,
+            'socks': 4, 'outerwear': 5, 'underwear': 6, 'shoes': 7, 'swimwear': 8}
 
 device = 'cpu'  # default device
 if torch.cuda.is_available():
@@ -38,16 +39,13 @@ predictions = []
 correct = 0
 total = len(text_list)
 
-for truth, text in text_list:
-    inputs = tokenizer.encode(text, return_tensors="pt").to(device)
-    logits = model(inputs).logits
-    prediction_idxs = torch.max(logits, 1).indices
-    prediction = id2label[prediction_idxs.tolist()[0]]
-    predictions.append(prediction)
-    if prediction == truth:
-        correct += 1
-    print(f'Predicted: {prediction}, for: {text}')
-print(f'Accuracy: {correct/total}')
+x_test = [x[1] for x in text_list]
+y_test = [x[0] for x in text_list]
+
+predictions = evaluator.test(
+    model, tokenizer, x_test, y_test, id2label, label2id, device)
+
+evaluator.evaluate_f1(y_test, predictions)
 
 
 # df['predictions'] = predictions
