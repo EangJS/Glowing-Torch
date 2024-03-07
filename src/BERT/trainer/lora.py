@@ -1,5 +1,5 @@
 from datasets import DatasetDict, Dataset
-from data.create import create_dataset
+from data.create import DatasetCreator
 import numpy as np
 import torch
 import evaluate
@@ -18,32 +18,10 @@ tokenizer = AutoTokenizer.from_pretrained(
     model_checkpoint, add_prefix_space=True)
 
 
-def get_dataset():
-    dataset = create_dataset()
-
-    x_train = dataset['train']['name'][:1000]
-    y_train = dataset['train']['category'][:1000]
-
-    x_test = dataset['test']['name']
-    y_test = dataset['test']['category']
-    return x_train, y_train, x_test, y_test
-
-
-def label_x_id(y_train, y_test):
-    labels = set()
-    for label in y_test:
-        labels.add(label)
-    for label in y_train:
-        labels.add(label)
-    id2label = {}
-    label2id = {}
-    for i, label in enumerate(labels):
-        id2label[i] = label
-        label2id[label] = i
-    with open('models/id2label.txt', 'w') as f:
-        f.write(str(id2label) + '\n' + str(label2id) + '\n')
-
-    return id2label, label2id, labels
+dataset_creator = DatasetCreator()
+x_train, y_train, x_test, y_test = dataset_creator.get_train_test_split()
+id2label, label2id, labels = dataset_creator.get_label_maps()
+dataset = dataset_creator.dataset
 
 
 def tokenize_function(examples):
@@ -108,14 +86,6 @@ def main():
     if tokenizer.pad_token is None:
         tokenizer.add_special_tokens({'pad_token': '[PAD]'})
         model.resize_token_embeddings(len(tokenizer))
-    x_train, y_train, x_test, y_test = get_dataset()
-    id2label, label2id, labels = label_x_id(y_train, y_test)
-    for i, _ in enumerate(y_train):
-        y_train[i] = label2id[y_train[i]]
-    for i, _ in enumerate(y_test):
-        y_test[i] = label2id[y_test[i]]
-    dataset = DatasetDict({'train': Dataset.from_dict({'label': y_train, 'text': x_train}),
-                           'validation': Dataset.from_dict({'label': y_test, 'text': x_test})})
 
     model = AutoModelForSequenceClassification.from_pretrained(
         model_checkpoint, num_labels=len(labels), id2label=id2label, label2id=label2id)

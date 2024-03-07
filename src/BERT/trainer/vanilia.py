@@ -5,43 +5,12 @@ import torch
 from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification)
-from datasets import DatasetDict, Dataset
-from data.create import create_dataset
+from data.create import DatasetCreator
 
-dataset = create_dataset()
-
-x_train = dataset['train']['name']
-y_train = dataset['train']['category']
-
-x_test = dataset['test']['name']
-y_test = dataset['test']['category']
-
-
-def label_x_id():
-    labels = set()
-    for label in y_test:
-        labels.add(label)
-    for label in y_train:
-        labels.add(label)
-    id2label = {}
-    label2id = {}
-    for i, label in enumerate(labels):
-        id2label[i] = label
-        label2id[label] = i
-
-    return id2label, label2id, labels
-
-
-id2label, label2id, labels = label_x_id()
-
-for i, _ in enumerate(y_train):
-    y_train[i] = label2id[y_train[i]]
-for i, _ in enumerate(y_test):
-    y_test[i] = label2id[y_test[i]]
-
-dataset = DatasetDict({'train': Dataset.from_dict({'label': y_train, 'text': x_train}),
-                       'validation': Dataset.from_dict({'label': y_test, 'text': x_test})})
-
+dataset_creator = DatasetCreator()
+x_train, y_train, x_test, y_test = dataset_creator.get_train_test_split()
+id2label, label2id, labels = dataset_creator.get_label_maps()
+dataset = dataset_creator.dataset
 
 model_checkpoint = 'distilbert-base-uncased'
 
@@ -99,23 +68,6 @@ lr_scheduler = get_scheduler(
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 print(device)
-
-
-text_list = ["Adidas tracking jersey", "Patterned dress", "Slim Fit Cotton twill trousers", "Relaxed Fit Denim jacket",
-             "Stretch Fleece Mock Neck Long Sleeve T-Shirt", "Rudolph the Red-Nosed Reindeer Finger Puppets"]
-
-print("Untrained model predictions:")
-print("----------------------------")
-for text in text_list:
-    # tokenize text
-    inputs = tokenizer.encode(text, return_tensors="pt").to(device)
-    # compute logits
-    logits = model(inputs).logits
-    # convert logits to label
-    predictions = torch.argmax(logits)
-    print(inputs)
-
-    print(text + " - " + id2label[predictions.tolist()])
 
 
 loss = None
