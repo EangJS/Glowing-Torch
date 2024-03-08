@@ -3,58 +3,43 @@ import torch.nn as nn
 from transformers import AutoModel, AutoTokenizer
 import torch.optim as optim
 from data.create import DatasetCreator
+from custom_model import CustomModel
 
+# Load the dataset
+dataset_creator = DatasetCreator('Datasets/dataset.csv')
+id2label, label2id, labels = dataset_creator.label_maps
+x_train, y_train, x_test, y_test = dataset_creator.train_test_split
 
-dataset_creator = DatasetCreator()
-id2label, label2id, labels = dataset_creator.get_label_maps()
-x_train, y_train, x_test, y_test = dataset_creator.get_train_test_split()
+# Load the model and tokenizer
 model_checkpoint = 'distilbert-base-uncased'
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 base_model = AutoModel.from_pretrained(model_checkpoint)
 
 
-class CustomModel(nn.Module):
-    def __init__(self, base_model):
-        super(CustomModel, self).__init__()
-        self.base_model = base_model
-        self.classifier = nn.Linear(768, len(labels))
-
-    def forward(self, input_ids, attention_mask):
-        outputs = self.base_model(
-            input_ids=input_ids, attention_mask=attention_mask)
-        logits = self.classifier(
-            # Use the output of the [CLS] token
-            outputs.last_hidden_state[:, 0, :])
-        return logits
-
-
-model = CustomModel(base_model)
+model = CustomModel(base_model, labels)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=2e-5)
 
 
-def train_epoch(model, optimizer, criterion):
+def train_epoch(model, optimizer, criterion, epoch):
     model.train()
-    total_correct = 0
-    for i in range(len(x_train)):
+    total_loss = 0
+    for i, _ in enumerate(x_train):
         inputs = x_train[i]
         label = torch.tensor(y_train[i])
 
         inputs = tokenizer(inputs, padding=True,
                            truncation=True, return_tensors="pt")
         optimizer.zero_grad()
-        outputs = model(input_ids=inputs.input_ids,
-                        attention_mask=inputs.attention_mask)
+        outputs = model(**inputs)
 
         loss = criterion(outputs.flatten(), label)
-
-        _, predicted = torch.max(outputs, 1)
-        total_correct += (predicted == label).sum().item()
-        print(f"Predict:{predicted.item()},Actual:{label}")
+        total_loss += loss.item()
         loss.backward()
-        print(loss.item())
         optimizer.step()
+        print(f"Epoch: {epoch}, {i}/{len(x_train)}, Loss: {loss.item()}")
+    print(f"Loss: {total_loss / len(x_train)}")
 
 
 def evaluate(model):
@@ -82,7 +67,7 @@ def evaluate(model):
 # Training loop
 num_epochs = 1
 for epoch in range(num_epochs):
-    train_acc = train_epoch(
-        model, optimizer, criterion)
+    train_epoch(model, optimizer, criterion, epoch)
+torch.save(model, './models/distilbert-custom.pt')
 
 print(evaluate(model))

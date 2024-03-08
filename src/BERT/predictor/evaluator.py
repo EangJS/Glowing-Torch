@@ -19,7 +19,7 @@ def test(model, tokenizer, x_test, y_test, id2label, label2id, device):
         inputs = tokenizer.encode(text, return_tensors="pt").to(device)
         logits = model(inputs).logits
         predictions = torch.max(logits, 1).indices
-        prediction: str = id2label[predictions.tolist()[0]]
+        prediction: str = id2label[str(predictions.tolist()[0])]
         actual: str = y_test[x_test.index(text)]
         y_pred.append(prediction)
         if prediction == actual:

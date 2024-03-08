@@ -3,6 +3,7 @@ from transformers import (
 import torch
 import pandas as pd
 import evaluator
+import json
 
 TEST_DATA = 'Datasets/dataset.csv'
 MODEL_NAME = './models/distilbert-lora.pt'
@@ -13,10 +14,10 @@ text_list = []
 for index, row in df.iterrows():
     text_list.append((row['category'], row['name']))
 
-id2label = {0: 'accessories', 1: 'sportswear', 2: 'bottoms', 3: 'tops',
-            4: 'socks', 5: 'outerwear', 6: 'underwear', 7: 'shoes', 8: 'swimwear'}
-label2id = {'accessories': 0, 'sportswear': 1, 'bottoms': 2, 'tops': 3,
-            'socks': 4, 'outerwear': 5, 'underwear': 6, 'shoes': 7, 'swimwear': 8}
+with open('models/label_maps.json', 'r') as f:
+    label_maps = json.load(f)
+    id2label = label_maps['id2label']
+    label2id = label_maps['label2id']
 
 device = 'cpu'  # default device
 if torch.cuda.is_available():

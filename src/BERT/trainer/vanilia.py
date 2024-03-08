@@ -7,10 +7,11 @@ from transformers import (
     AutoModelForSequenceClassification)
 from data.create import DatasetCreator
 
-dataset_creator = DatasetCreator()
-x_train, y_train, x_test, y_test = dataset_creator.get_train_test_split()
-id2label, label2id, labels = dataset_creator.get_label_maps()
+dataset_creator = DatasetCreator('./Datasets/dataset.csv')
+x_train, y_train, x_test, y_test = dataset_creator.train_test_split
+id2label, label2id, labels = dataset_creator.label_maps
 dataset = dataset_creator.dataset
+
 
 model_checkpoint = 'distilbert-base-uncased'
 
@@ -83,33 +84,6 @@ for epoch in range(num_epochs):
         lr_scheduler.step()
         optimizer.zero_grad()
     print(f"Epoch:{epoch}, Loss :{loss}")
-
-model.eval()
-text_list = ["Patterned dress", "Slim Fit Cotton twill trousers", "Relaxed Fit Denim jacket",
-             "Stretch Fleece Mock Neck Long Sleeve T-Shirt", "Rudolph the Red-Nosed Reindeer Finger Puppets", "Kids cute T-Shirt"]
-
-print("Untrained model predictions:")
-print("----------------------------")
-for text in text_list:
-    inputs = tokenizer.encode(text, return_tensors="pt").to('cuda')
-    logits = model(inputs).logits
-    predictions = torch.argmax(logits)
-    print(inputs)
-
-    print(text + " - " + id2label[predictions.tolist()])
-
-
-text_list = ["Adidas tracking jersey", "Patterned dress", "Slim Fit Cotton twill Down", "Prospex Land Meachanical Timepiece", "CoCo Crush Earring",
-             "EAU DE Parfum Spray", "3-dimensional tweed by setting the entire piece with stones.", "Sardines", "Kids cute T-Shirt"]
-print("Trained model predictions:")
-print("--------------------------")
-for text in text_list:
-    inputs = tokenizer.encode(text, return_tensors="pt").to(
-        "cuda")
-    logits = model(inputs).logits
-    predictions = torch.max(logits, 1).indices
-
-    print(text + " - " + id2label[predictions.tolist()[0]])
 
 torch.save(model, './models/bert-vanilia.pt')
 tokenizer.save_pretrained('./models/bert-vanilia-tokenizer')

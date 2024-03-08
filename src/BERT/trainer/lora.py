@@ -19,8 +19,8 @@ tokenizer = AutoTokenizer.from_pretrained(
 
 
 dataset_creator = DatasetCreator()
-x_train, y_train, x_test, y_test = dataset_creator.get_train_test_split()
-id2label, label2id, labels = dataset_creator.get_label_maps()
+x_train, y_train, x_test, y_test = dataset_creator.train_test_split
+id2label, label2id, labels = dataset_creator.label_maps
 dataset = dataset_creator.dataset
 
 
