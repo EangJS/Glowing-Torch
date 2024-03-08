@@ -18,7 +18,7 @@ tokenizer = AutoTokenizer.from_pretrained(
     model_checkpoint, add_prefix_space=True)
 
 
-dataset_creator = DatasetCreator()
+dataset_creator = DatasetCreator('datasets/dataset.csv')
 x_train, y_train, x_test, y_test = dataset_creator.train_test_split
 id2label, label2id, labels = dataset_creator.label_maps
 dataset = dataset_creator.dataset
@@ -79,7 +79,7 @@ def train(tokenized_dataset, data_collator, model, tokenizer, compute_metrics):
     )
 
     trainer.train()
-    torch.save(trainer.model, './models/distilbert-lora.pt')
+    torch.save(trainer.model, './saved-models/distilbert-lora.pt')
 
 
 def main():
@@ -96,7 +96,7 @@ def main():
 
     train(tokenized_dataset, data_collator, model, tokenizer, compute_metrics)
 
-    tokenizer.save_pretrained('./models/distilbert-lora-tokenizer')
+    tokenizer.save_pretrained('./saved-models/distilbert-lora-tokenizer')
 
 
 if __name__ == "__main__":

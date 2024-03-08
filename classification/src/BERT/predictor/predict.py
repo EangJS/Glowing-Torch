@@ -6,8 +6,8 @@ import evaluator
 import json
 
 TEST_DATA = 'Datasets/dataset.csv'
-MODEL_NAME = './models/distilbert-lora.pt'
-TOKENIZER_NAME = './models/distilbert-lora-tokenizer'
+MODEL_NAME = './saved-models/distilbert-lora.pt'
+TOKENIZER_NAME = './saved-models/distilbert-lora-tokenizer'
 
 df = pd.read_csv(TEST_DATA, encoding='latin1')
 text_list = []

@@ -7,7 +7,7 @@ from transformers import (
     AutoModelForSequenceClassification)
 from data.create import DatasetCreator
 
-dataset_creator = DatasetCreator('./Datasets/dataset.csv')
+dataset_creator = DatasetCreator('./datasets/dataset.csv')
 x_train, y_train, x_test, y_test = dataset_creator.train_test_split
 id2label, label2id, labels = dataset_creator.label_maps
 dataset = dataset_creator.dataset
@@ -85,5 +85,5 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
     print(f"Epoch:{epoch}, Loss :{loss}")
 
-torch.save(model, './models/bert-vanilia.pt')
-tokenizer.save_pretrained('./models/bert-vanilia-tokenizer')
+torch.save(model, './saved-models/bert-vanilia.pt')
+tokenizer.save_pretrained('./saved-models/bert-vanilia-tokenizer')
