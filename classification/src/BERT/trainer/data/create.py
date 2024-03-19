@@ -32,7 +32,7 @@ class DatasetCreator:
             self.__id2label[i] = label
             self.__label2id[label] = i
         label_dict = {"id2label": self.__id2label, "label2id": self.__label2id}
-        with open('models/label_maps.json', 'w') as f:
+        with open('saved-models/label_maps.json', 'w') as f:
             json.dump(label_dict, f, indent=4)
         return self.__id2label, self.__label2id, labels
 
