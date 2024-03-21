@@ -3,3 +3,4 @@ saved-models/
 datasets/
 *.csv
 *.xlsx
+models/

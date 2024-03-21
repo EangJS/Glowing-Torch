@@ -1,4 +1,7 @@
 import torch.nn as nn
+import torch
+
+torch.manual_seed(42)
 
 
 class CustomModel(nn.Module):

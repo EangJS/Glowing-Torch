@@ -7,11 +7,11 @@ from transformers import (
     AutoModelForSequenceClassification)
 from data.create import DatasetCreator
 
-dataset_creator = DatasetCreator('./datasets/dataset.csv')
-x_train, y_train, x_test, y_test = dataset_creator.train_test_split
-id2label, label2id, labels = dataset_creator.label_maps
-dataset = dataset_creator.dataset
 
+dataset_creator = DatasetCreator('./Datasets/dataset.csv')
+id2label, label2id, labels = dataset_creator.label_maps
+x_train, y_train, x_test, y_test = dataset_creator.get_splits()
+dataset = dataset_creator.dataset
 
 model_checkpoint = 'distilbert-base-uncased'
 
@@ -50,9 +50,9 @@ tokenized_dataset.set_format("torch")
 
 
 small_train_dataset = tokenized_dataset["train"].shuffle(
-    seed=42) .select(range(1000))
+    seed=42)  # .select(range(1000))
 small_eval_dataset = tokenized_dataset["validation"].shuffle(
-    seed=42) .select(range(1000))
+    seed=42)  # .select(range(1000))
 
 train_dataloader = DataLoader(small_train_dataset, shuffle=True)
 eval_dataloader = DataLoader(small_eval_dataset)
@@ -60,7 +60,7 @@ eval_dataloader = DataLoader(small_eval_dataset)
 
 optimizer = AdamW(model.parameters(), lr=5e-5)
 
-num_epochs = 3
+num_epochs = 5
 num_training_steps = num_epochs * len(train_dataloader)
 lr_scheduler = get_scheduler(
     name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
@@ -79,7 +79,6 @@ for epoch in range(num_epochs):
         outputs = model(**batch)
         loss = outputs.loss
         loss.backward()
-
         optimizer.step()
         lr_scheduler.step()
         optimizer.zero_grad()

@@ -6,13 +6,18 @@ from data.create import DatasetCreator
 from customs.custom_model import CustomModel
 import torch.nn.functional as F
 
-# Load the dataset
-dataset_creator = DatasetCreator('datasets/dataset.csv')
-id2label, label2id, labels = dataset_creator.label_maps
-x_train, y_train, x_test, y_test = dataset_creator.train_test_split
-x_train = x_train[:1090]
-y_train = y_train[:1090]
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+
+# Load the dataset
+dataset_creator = DatasetCreator('./Datasets/dataset.csv')
+id2label, label2id, labels = dataset_creator.label_maps
+x_train, y_train, x_test, y_test = dataset_creator.get_splits()
+x_train = x_train[:1000]
+y_train = y_train[:1000]
+x_train.append('Bootcut denim jeans')
+y_train.append(label2id['bottoms'])
 # Load the model and tokenizer
 model_checkpoint = 'distilbert-base-uncased'
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
@@ -26,14 +31,28 @@ class CustomLoss(nn.Module):
     def __init__(self):
         super(CustomLoss, self).__init__()
 
-    def forward(self, predictions, labels, inputs):
+    def forward(self, predictions, labels, inputs, mode=False):
         ce_loss = F.cross_entropy(predictions, labels)
+        if not mode:
+            return ce_loss
 
         penalty = 0
+        inputs = inputs.lower()
 
-        if predictions.argmax() == label2id['tops']:
-            if 'shirt' not in inputs:
+        if predictions.argmax().item() == label2id['tops']:
+            if ('shirt' not in inputs) or ('t-shirt' not in inputs):
+                penalty *= 2
+            elif ('basic' in inputs) or ('cotton' in inputs) or ('plain' in inputs) or ('polo' in inputs):
+                penalty *= 0.75
+        elif predictions.argmax().item() == label2id['bottoms']:
+            if ('jeans' not in inputs):
                 penalty += 0.5
+            else:
+                if ('straight' not in inputs) or ('regular' not in inputs) or ('bootcut' in inputs):
+                    penalty *= 2
+                else:
+                    penalty *= 0.75
+        penalty += len(inputs.split()) * 0.1
 
         total_loss = ce_loss + penalty
 
@@ -41,7 +60,7 @@ class CustomLoss(nn.Module):
 
 
 criterion = CustomLoss()
-optimizer = optim.Adam(model.parameters(), lr=2e-5)
+optimizer = optim.Adam(model.parameters(), lr=8e-4)
 
 
 def train_epoch(model, optimizer, criterion, epoch):
@@ -49,14 +68,14 @@ def train_epoch(model, optimizer, criterion, epoch):
     total_loss = 0
     for i, _ in enumerate(x_train):
         inputs = x_train[i]
-        label = torch.tensor(y_train[i])
+        label = torch.tensor(y_train[i]).to(device)
 
         inputs = tokenizer(inputs, padding=True,
-                           truncation=True, return_tensors="pt")
+                           truncation=True, return_tensors="pt").to(device)
         optimizer.zero_grad()
-        outputs = model(**inputs)
+        outputs = model(**inputs).to(device)
 
-        loss = criterion(outputs.flatten(), label, x_train[i])
+        loss = criterion(outputs.flatten(), label, x_train[i], True)
         total_loss += loss.item()
         loss.backward()
         optimizer.step()
@@ -73,7 +92,7 @@ def evaluate(model):
             label = torch.tensor(y_train[i])
 
             inputs = tokenizer(inputs, padding=True,
-                               truncation=True, return_tensors="pt")
+                               truncation=True, return_tensors="pt").to(device)
             optimizer.zero_grad()
             outputs = model(input_ids=inputs.input_ids,
                             attention_mask=inputs.attention_mask)
@@ -87,9 +106,10 @@ def evaluate(model):
 
 
 # Training loop
-num_epochs = 1
+num_epochs = 5
+model.to(device)
 for epoch in range(num_epochs):
     train_epoch(model, optimizer, criterion, epoch)
-torch.save(model, './saved-models/distilbert-custom.pt')
 
-print(evaluate(model))
+torch.save(model, './saved-models/distilbert-custom.pt')
+tokenizer.save_pretrained('./saved-models/distilbert-custom-tokenizer')
