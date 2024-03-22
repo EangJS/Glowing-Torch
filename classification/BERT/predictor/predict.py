@@ -5,24 +5,24 @@ import pandas as pd
 import evaluator
 import json
 
-TEST_DATA = 'Datasets/dataset.csv'
+TEST_DATA = 'Datasets/custom_dataset.csv'
+# MODEL_NAME = './saved-models/bert-vanilia.pt'
 MODEL_NAME = './saved-models/distilbert-lora.pt'
-TOKENIZER_NAME = './saved-models/distilbert-lora-tokenizer'
+TOKENIZER_NAME = './saved-models/bert-vanilia-tokenizer'
 
 df = pd.read_csv(TEST_DATA, encoding='latin1')
 text_list = []
 for index, row in df.iterrows():
     text_list.append((row['category'], row['name']))
 
-with open('models/label_maps.json', 'r') as f:
+with open('saved-models/label_maps.json', 'r') as f:
     label_maps = json.load(f)
     id2label = label_maps['id2label']
     label2id = label_maps['label2id']
 
-device = 'cpu'  # default device
-if torch.cuda.is_available():
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+if device == 'cuda':
     model = torch.load(MODEL_NAME)
-    device = 'cuda'
 else:
     model = torch.load(MODEL_NAME, map_location=torch.device(device))
 

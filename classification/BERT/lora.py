@@ -18,8 +18,8 @@ tokenizer = AutoTokenizer.from_pretrained(
     model_checkpoint, add_prefix_space=True)
 
 
-dataset_creator = DatasetCreator('datasets/dataset.csv')
-x_train, y_train, x_test, y_test = dataset_creator.train_test_split
+dataset_creator = DatasetCreator('datasets/custom_dataset.csv')
+x_train, y_train, x_test, y_test = dataset_creator.get_splits()
 id2label, label2id, labels = dataset_creator.label_maps
 dataset = dataset_creator.dataset
 
@@ -54,10 +54,10 @@ def train(tokenized_dataset, data_collator, model, tokenizer, compute_metrics):
     model.print_trainable_parameters()
     lr = 1e-3
     batch_size = 4
-    num_epochs = 1
+    num_epochs = 10
 
     training_args = TrainingArguments(
-        output_dir=f"models/bert-lora-text-classification",
+        output_dir=f"saved-models/bert-lora-text-classification",
         learning_rate=lr,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,

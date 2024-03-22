@@ -6,9 +6,9 @@ from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification)
 from data.create import DatasetCreator
+from predictor.evaluator import test
 
-
-dataset_creator = DatasetCreator('./Datasets/dataset.csv')
+dataset_creator = DatasetCreator('./Datasets/custom_dataset.csv')
 id2label, label2id, labels = dataset_creator.label_maps
 x_train, y_train, x_test, y_test = dataset_creator.get_splits()
 dataset = dataset_creator.dataset
@@ -86,3 +86,5 @@ for epoch in range(num_epochs):
 
 torch.save(model, './saved-models/bert-vanilia.pt')
 tokenizer.save_pretrained('./saved-models/bert-vanilia-tokenizer')
+
+test(model, tokenizer, x_test, y_test, id2label, label2id, device)

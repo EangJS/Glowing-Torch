@@ -1,7 +1,7 @@
 from datasets import Dataset, DatasetDict
 import pandas as pd
 import json
-TRAIN_RATIO = 0.9
+TRAIN_RATIO = 0.98
 
 
 def create_dataset():
