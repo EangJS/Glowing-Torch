@@ -1,16 +1,6 @@
 from datasets import Dataset, DatasetDict
 import pandas as pd
 import json
-TRAIN_RATIO = 0.98
-
-
-def create_dataset():
-    df = pd.read_csv('Datasets/dataset.csv', encoding='latin1')
-    hf_dataset = Dataset.from_pandas(df)
-
-    hf_dataset = hf_dataset.train_test_split(
-        test_size=1-TRAIN_RATIO, shuffle=True, seed=42)
-    return hf_dataset
 
 
 class DatasetCreator:
@@ -28,7 +18,7 @@ class DatasetCreator:
         df = pd.read_csv(self.file_path, encoding='latin1')
         hf_dataset = Dataset.from_pandas(df)
         hf_dataset = hf_dataset.train_test_split(
-            test_size=1-self.train_ratio, shuffle=True, seed=42)
+            test_size=1-self.train_ratio, shuffle=True, seed=40)
         return hf_dataset
 
     def __get_raw_splits(self):

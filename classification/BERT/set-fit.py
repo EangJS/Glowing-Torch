@@ -1,6 +1,6 @@
 from data.create import DatasetCreator
 from sentence_transformers.losses import CosineSimilarityLoss
-
+import torch
 from setfit import SetFitModel, SetFitTrainer
 
 dataset_creator = DatasetCreator('datasets/custom_dataset.csv')
@@ -27,3 +27,4 @@ trainer = SetFitTrainer(
 trainer.train()
 metrics = trainer.evaluate()
 print(metrics)
+torch.save(model, './saved-models/bert-new-vanilia.pt')

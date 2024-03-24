@@ -4,3 +4,5 @@ datasets/
 *.csv
 *.xlsx
 models/
+checkpoints/
+runs/
