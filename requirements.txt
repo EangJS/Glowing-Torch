@@ -5,3 +5,5 @@ peft
 numpy
 datasets
 evaluate
+setfit
+pandas
