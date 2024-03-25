@@ -2,6 +2,8 @@ from data.create import DatasetCreator
 from sentence_transformers.losses import CosineSimilarityLoss
 import torch
 from setfit import SetFitModel, SetFitTrainer
+import os
+os.environ["WANDB_DISABLED"] = "true"
 
 dataset_creator = DatasetCreator('datasets/custom_dataset.csv')
 x_train, y_train, x_test, y_test = dataset_creator.get_splits()
@@ -25,6 +27,7 @@ trainer = SetFitTrainer(
 
 # Train and evaluate!
 trainer.train()
+torch.save(model, './saved-models/clothing-setfit.pt')
 metrics = trainer.evaluate()
 print(metrics)
-torch.save(model, './saved-models/bert-new-vanilia.pt')
+

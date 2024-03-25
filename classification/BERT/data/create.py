@@ -18,7 +18,7 @@ class DatasetCreator:
         df = pd.read_csv(self.file_path, encoding='latin1')
         hf_dataset = Dataset.from_pandas(df)
         hf_dataset = hf_dataset.train_test_split(
-            test_size=1-self.train_ratio, shuffle=True, seed=40)
+            test_size=1-self.train_ratio, shuffle=True, seed=42)
         return hf_dataset
 
     def __get_raw_splits(self):

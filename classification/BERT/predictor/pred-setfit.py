@@ -27,3 +27,26 @@ for idx,i in enumerate(predictions):
     max_index = torch.argmax(probs).item()
     print(f"{text_list[idx]} -> Prediction: {id2label[str(max_index)]} with confidence: {probs[max_index].item()}")
 
+categories = []
+text_list = []
+for index, row in df.iterrows():
+    text_list.append(row['name'])
+    categories.append(row['category'])
+
+predictions = model.predict_proba(text_list)
+
+for idx,i in enumerate(predictions):
+    probs = torch.softmax(i,dim=0)
+    max_index = torch.argmax(probs).item()
+    prediction = id2label[str(max_index)]
+    truth = categories[idx]
+    name = text_list[idx]
+    if truth == prediction:
+        correct += 1
+    else:
+        print(f"Fail: {name} -> {prediction} != {truth} with {probs}")
+
+print(correct / len(text_list))
+
+    
+
