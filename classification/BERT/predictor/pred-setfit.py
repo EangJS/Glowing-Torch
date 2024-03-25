@@ -19,7 +19,7 @@ model.to(device)
 
 correct = 0
 text_list = ['Wireless Bra', 'Short Sleeve Graphic Tee-Shirt', 'Standard Colour Jeans', 'Cotton Color Shirt', 'Kakhi Shorts', '3/4 Shorts',
-             'Knitted Polo T-Shirt', 'Basquiat UT T-Shirt', 'straight jeans', 'Super Stretch Jeans', 'standard bootcut jeans']
+             'Knitted Polo T-Shirt', 'Pop Art T-Shirt', 'Basquiat UT Graphic T-Shirt', 'straight jeans', 'Super Stretch Jeans', 'standard bootcut jeans']
 total = len(text_list)
 predictions = model.predict_proba(text_list)
 for idx,i in enumerate(predictions):
